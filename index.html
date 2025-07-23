@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Floating Platforms (OrbitControls)</title>
+  <base href="/index/"> <!-- Добавлен тег base для правильного разрешения путей на GitHub Pages -->
   <style>
     body { margin: 0; overflow: hidden; background: #000; }
     canvas { display: block; }
@@ -11,23 +12,23 @@
 </head>
 <body>
 <script type="module">
-  // !!! ВАЖНО: Убедитесь, что все файлы Three.js находятся в следующих относительных директориях:
-  // ./js/three.module.js
-  // ./js/jsm/controls/OrbitControls.js
-  // ./js/jsm/postprocessing/EffectComposer.js
-  // ./js/jsm/postprocessing/RenderPass.js
-  // ./js/jsm/postprocessing/UnrealBloomPass.js
+  // !!! ВАЖНО: Убедитесь, что все файлы Three.js находятся в следующих директориях относительно корня вашего репозитория 'index':
+  // js/three.module.js
+  // js/jsm/controls/OrbitControls.js
+  // js/jsm/postprocessing/EffectComposer.js
+  // js/jsm/postprocessing/RenderPass.js
+  // js/jsm/postprocessing/UnrealBloomPass.js
   // А также необходимые для пост-обработки:
-  // ./js/jsm/postprocessing/Pass.js
-  // ./js/jsm/postprocessing/ShaderPass.js
-  // ./js/jsm/postprocessing/MaskPass.js (содержит MaskPass и ClearMaskPass)
-  // ./js/jsm/shaders/CopyShader.js
-  // ./js/jsm/shaders/LuminosityHighPassShader.js
-import * as THREE from './js/three.module.js';
-import { OrbitControls } from './js/jsm/controls/OrbitControls.js';
-import { EffectComposer } from './js/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from './js/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from './js/jsm/postprocessing/UnrealBloomPass.js';
+  // js/jsm/postprocessing/Pass.js
+  // js/jsm/postprocessing/ShaderPass.js
+  // js/jsm/postprocessing/MaskPass.js (содержит MaskPass и ClearMaskPass)
+  // js/jsm/shaders/CopyShader.js
+  // js/jsm/shaders/LuminosityHighPassShader.js
+import * as THREE from 'js/three.module.js';
+import { OrbitControls } from 'js/jsm/controls/OrbitControls.js';
+import { EffectComposer } from 'js/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'js/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'js/jsm/postprocessing/UnrealBloomPass.js';
 
   // Сцена и туман
   const scene = new THREE.Scene();
@@ -63,8 +64,8 @@ import { UnrealBloomPass } from './js/jsm/postprocessing/UnrealBloomPass.js';
   composer.addPass(bloom);
 
   // Платформы
-  // Путь к текстуре изменен на относительный. Убедитесь, что checker.png находится в папке 'textures'
-  const tex = new THREE.TextureLoader().load('./textures/checker.png',
+  // Путь к текстуре теперь разрешается относительно тега base
+  const tex = new THREE.TextureLoader().load('textures/checker.png',
     // Колбэк при успешной загрузке
     function ( texture ) {
       console.log('Текстура checker.png успешно загружена.');
