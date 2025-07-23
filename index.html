@@ -24,11 +24,11 @@
   // js/jsm/postprocessing/MaskPass.js (содержит MaskPass и ClearMaskPass)
   // js/jsm/shaders/CopyShader.js
   // js/jsm/shaders/LuminosityHighPassShader.js
-import * as THREE from 'js/three.module.js';
-import { OrbitControls } from 'js/jsm/controls/OrbitControls.js';
-import { EffectComposer } from 'js/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'js/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'js/jsm/postprocessing/UnrealBloomPass.js';
+import * as THREE from './js/three.module.js'; // Путь изменен на './js/...'
+import { OrbitControls } from './js/jsm/controls/OrbitControls.js'; // Путь изменен на './js/...'
+import { EffectComposer } from './js/jsm/postprocessing/EffectComposer.js'; // Путь изменен на './js/...'
+import { RenderPass } from './js/jsm/postprocessing/RenderPass.js'; // Путь изменен на './js/...'
+import { UnrealBloomPass } from './js/jsm/postprocessing/UnrealBloomPass.js'; // Путь изменен на './js/...'
 
   // Сцена и туман
   const scene = new THREE.Scene();
@@ -49,7 +49,7 @@ import { UnrealBloomPass } from 'js/jsm/postprocessing/UnrealBloomPass.js';
   controls.enableDamping = true;
 
   // Свет
-  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  const dirLight = new THREE.DirectionionalLight(0xffffff, 0.8);
   dirLight.position.set(5,10,7.5);
   scene.add(dirLight);
   scene.add(new THREE.AmbientLight(0x404050, 0.5));
@@ -65,7 +65,7 @@ import { UnrealBloomPass } from 'js/jsm/postprocessing/UnrealBloomPass.js';
 
   // Платформы
   // Путь к текстуре теперь разрешается относительно тега base
-  const tex = new THREE.TextureLoader().load('textures/checker.png',
+  const tex = new THREE.TextureLoader().load('textures/checker.png', // Путь остался без './' благодаря тегу base
     // Колбэк при успешной загрузке
     function ( texture ) {
       console.log('Текстура checker.png успешно загружена.');
