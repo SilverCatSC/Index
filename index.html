@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Floating Platforms (OrbitControls)</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #000; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+<script type="module">
+  // Импорты Three.js
+  // Убедитесь, что все эти файлы находятся в соответствующих директориях:
+  // js/three.module.js
+  // js/jsm/controls/OrbitControls.js
+  // js/jsm/postprocessing/EffectComposer.js
+  // js/jsm/postprocessing/RenderPass.js
+  // js/jsm/postprocessing/UnrealBloomPass.js
+  // js/jsm/postprocessing/Pass.js
+  // js/jsm/postprocessing/ShaderPass.js
+  // js/jsm/postprocessing/MaskPass.js
+  // js/jsm/shaders/CopyShader.js
+  // js/jsm/shaders/LuminosityHighPassShader.js
+import * as THREE from './js/three.module.js';
+import { OrbitControls } from './js/jsm/controls/OrbitControls.js';
+import { EffectComposer } from './js/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from './js/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from './js/jsm/postprocessing/UnrealBloomPass.js';
+
+  // Сцена и туман
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x000020, 0.002);
+
+  // Рендерер
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x000010);
+  document.body.appendChild(renderer.domElement);
+
+  // Камера + управления
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 5, 20);
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 0.5;
+  controls.enableDamping = true;
+
+  // Свет
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  dirLight.position.set(5, 10, 7.5);
+  scene.add(dirLight);
+  scene.add(new THREE.AmbientLight(0x404050, 0.5));
+
+  // Пост-обработка (Bloom)
+  const composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.8, 0.4, 0.85);
+  bloom.threshold = 0.1;
+  bloom.strength = 1.2;
+  bloom.radius = 0.5;
+  composer.addPass(bloom);
+
+  // Платформы
+  // Используем локальный путь к текстуре. Убедитесь, что файл checker.png находится в папке textures/
+  const tex = new THREE.TextureLoader().load('./textures/checker.png',
+    // Колбэк при успешной загрузке
+    function (texture) {
+      console.log('Текстура успешно загружена.');
+    },
+    // Колбэк прогресса
+    undefined,
+    // Колбэк ошибки
+    function (err) {
+      console.error('Ошибка загрузки текстуры:', err);
+      // Fallback to a solid color material if texture fails to load
+      mat.map = null;
+      mat.color.set(0x808080); // Set a default grey color
+      mat.needsUpdate = true;
+    }
+  );
+
+  const geo = new THREE.BoxGeometry(4, 0.5, 4);
+  const mat = new THREE.MeshStandardMaterial({
+    map: tex,
+    emissive: 0x222244,
+    emissiveIntensity: 0.3,
+    roughness: 0.7,
+    metalness: 0.2
+  });
+
+  const platforms = [];
+  const platformSpacing = 10; // Расстояние между платформами по Z
+  const initialPlatformCount = 30; // Начальное количество платформ
+  const platformRecycleDistance = 150; // Расстояние, после которого платформа перерабатывается
+
+  // Функция для создания платформы
+  function createPlatform(x, y, z) {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(x, y, z);
+    m.userData.phase = Math.random() * Math.PI * 2;
+    scene.add(m);
+    platforms.push(m);
+  }
+
+  // Начальная генерация платформ
+  for (let i = 0; i < initialPlatformCount; i++) {
+    createPlatform(
+      (Math.random() - 0.5) * 40, // Случайное положение X
+      Math.random() * 5 + 1,      // Случайное положение Y
+      -i * platformSpacing        // Положение Z, чтобы платформы уходили вдаль
+    );
+  }
+
+  // Частицы фона
+  const pgeo = new THREE.BufferGeometry();
+  const count = 500;
+  const pos = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    pos[i * 3] = (Math.random() - 0.5) * 200;
+    pos[i * 3 + 1] = (Math.random() - 0.5) * 100;
+    pos[i * 3 + 2] = (Math.random() - 0.5) * 200;
+  }
+  pgeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  scene.add(new THREE.Points(pgeo, new THREE.PointsMaterial({ size: 0.5, opacity: 0.3, transparent: true })));
+
+  // Анимация
+  function animate(t) {
+    requestAnimationFrame(animate);
+    controls.update();
+
+    // Анимация движения платформ
+    platforms.forEach(p => {
+      p.position.y += Math.sin(t * 0.002 + p.userData.phase) * 0.005;
+      p.rotation.y += 0.001;
+    });
+
+    // Логика переработки платформ
+    const cameraZ = camera.position.z;
+    // Если первая платформа слишком далеко позади камеры, удаляем ее и создаем новую впереди
+    if (platforms.length > 0 && platforms[0].position.z > cameraZ + platformRecycleDistance) {
+      const oldPlatform = platforms.shift(); // Удаляем первую платформу из массива
+      scene.remove(oldPlatform); // Удаляем из сцены
+
+      // Добавляем новую платформу в конец
+      const lastPlatformZ = platforms[platforms.length - 1].position.z;
+      createPlatform(
+        (Math.random() - 0.5) * 40,
+        Math.random() * 5 + 1,
+        lastPlatformZ - platformSpacing
+      );
+    }
+
+    composer.render();
+  }
+  animate();
+
+  // Обработка ресайза окна
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    composer.setSize(window.innerWidth, window.innerHeight);
+  });
+</script>
+</body>
+</html>
